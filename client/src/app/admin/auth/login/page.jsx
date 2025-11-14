@@ -25,7 +25,7 @@ const page = () => {
       <Card className="w-96 flex flex-col gap-8 z-9999">
         <CardHeader>
           <CardTitle className="text-4xl font-black text-center">
-            Signup
+            Login
           </CardTitle>
           <CardDescription className="text-center">
             Please enter your credentials to login.

@@ -1,54 +1,163 @@
-📘 Hostel Room Allocation System
+# Hostel Room Allocation System
 
-The Hostel Room Allocation System is a software application designed to automate and simplify the process of assigning hostel rooms to students. Traditional manual allocation often leads to errors, duplication, and delays. This system overcomes those challenges by offering a centralized, efficient, and transparent digital solution.
+This repository contains a Next.js frontend (`/client`) and an Express backend (`/server`) for a hostel room allocation system. The backend exposes REST endpoints for user authentication, student applications, and admin allocations; the frontend includes the admin and student dashboard.
 
-🏢 Project Overview
+## Contents
 
-This system maintains a centralized database containing details of students, rooms, and occupancy status. It provides:
+- `/client` – Next.js frontend
+- `/server` – Express backend
 
-Real-time tracking of available and occupied rooms
+## Tech stack
 
-Automatic vacancy updates
+- Frontend: Next.js (React)
+- Backend: Node.js + Express
+- Database: MySQL (raw queries via `mysql2`)
 
-Student registration and management
+## Quick start
 
-Search and filter options for quick retrieval
+1. Server
 
-Report generation for administrators
+   - Install and run from the `server` folder:
 
-Fair and rule-based room allocation
+     ```powershell
+     cd server
+     npm install
+     npm run dev
+     ```
 
-By reducing manual effort and errors, the system ensures a smooth and systematic hostel management experience.
+   - The server listens on `PORT` (default 3000).
 
-🛠️ Tech Stack
-Frontend
+2. Client
 
-React.js – UI development
+   - Install and run from the `client` folder:
 
-Tailwind CSS / CSS 
+     ```powershell
+     cd client
+     npm install
+     npm run dev
+     ```
 
-Backend
+   - The Next.js app runs on port 3000 by default (change with `-p` or env).
 
-Node.js
+## Environment variables (server/.env)
 
-Express.js
+- `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_PORT` – MySQL connection
+- `PORT` – server port (optional)
+- `JWT_SECRET` – JSON Web Token secret
 
-Prisma ORM – Database access and schema management
+## Backend routes (HTTP API)
 
-Database
+Base server mount points (from `server/src/index.js`):
 
-MySQL
+- `POST /api/auth/register` – register a user
 
-🚀 Key Features
+  - Body (application/json):
+    ```json
+    {
+      "username": "jdoe",
+      "email": "jdoe@example.com",
+      "password": "secret",
+      "full_name": "John Doe",
+      "role": "STUDENT",
+      "graduation_year": 2026
+    }
+    ```
+  - Response: 201 created with `user` object.
 
-Digital room allocation
+- `POST /api/auth/login` – login
 
-Centralized student & room data
+  - Body:
+    ```json
+    { "email": "jdoe@example.com", "password": "secret" }
+    ```
+  - Response: 200 OK with `{ token, user }`.
 
-Automatic vacancy and occupancy updates
+- `POST /student/apply` – submit a hostel application (student)
 
-Admin dashboard & reports
+  - Body:
+    ```json
+    { "student_id": "student@example.com" | 123 | "username", "hostel_id": 1, "message": "..." }
+    ```
+  - Response: 201 created with `application` object.
 
-Room conflict prevention
+- `GET /student/:student_id/applications` – list applications for a student
 
-Fast search & filtering of records
+  - Example: `GET /student/123/applications`
+  - Response: 200 with `{ applications: [...] }`.
+
+- `POST /admin/allocate` – allocate a room using a student's application (admin)
+
+  - Body:
+    ```json
+    { "application_id": 10, "room_id": 5 }
+    ```
+  - Behavior: creates an allocation record and updates the application status (e.g., APPROVED/ALLOCATED).
+  - Response: 201 with `allocation` object.
+
+- `GET /admin/allocations/:student_id` – list allocations for a student
+  - Example: `GET /admin/allocations/123`
+  - Response: 200 with `{ allocations: [...] }`.
+
+## Notes: database tables
+
+- Example `users` table:
+
+  ```sql
+  CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    full_name VARCHAR(255) NOT NULL,
+    role ENUM('STUDENT','ADMIN') NOT NULL DEFAULT 'STUDENT',
+    graduation_year INT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  );
+  ```
+
+- Example `hostel` table:
+
+  ```sql
+  CREATE TABLE hostel (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE
+  );
+  ```
+
+- Example `room` table:
+
+  ```sql
+  CREATE TABLE room (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    hostel_id INT NOT NULL,
+    room_number VARCHAR(64) NOT NULL,
+    capacity INT NOT NULL DEFAULT 1,
+    UNIQUE KEY (hostel_id, room_number),
+    FOREIGN KEY (hostel_id) REFERENCES hostel(id) ON DELETE CASCADE
+  );
+  ```
+
+- Example `applications` table (needs `created_at` / `updated_at` columns):
+
+  ```sql
+  CREATE TABLE applications (
+  	id INT AUTO_INCREMENT PRIMARY KEY,
+  	student_id INT NOT NULL,
+  	hostel_id INT,
+  	message TEXT,
+  	status VARCHAR(32) NOT NULL DEFAULT 'PENDING',
+  	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  );
+  ```
+
+- Example `allocations` table:
+  ```sql
+  CREATE TABLE allocations (
+  	id INT AUTO_INCREMENT PRIMARY KEY,
+  	student_id INT NOT NULL,
+  	room_id INT NOT NULL,
+  	allocated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+  ```

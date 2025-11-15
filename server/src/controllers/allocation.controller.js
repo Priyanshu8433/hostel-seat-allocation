@@ -16,16 +16,16 @@ const allocateFromApplication = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Application is not pending')
   }
 
-  console.log(1);
+//   console.log(1);
   
   
   // create allocation using student_id from application
   const allocation = await createAllocation({ student_id: application.student_id, room_id })
-  console.log(1);
+//   console.log(1);
   
   // update application status to ALLOCATED
   await updateApplicationStatus(application_id, 'APPROVED')
-  console.log(1);
+//   console.log(1);
 
   return res.status(201).json(new ApiResponse(201, { allocation }, 'Room allocated'))
 })

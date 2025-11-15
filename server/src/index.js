@@ -4,12 +4,14 @@ import userRoutes from './routes/user.routes.js'
 import studentRoutes from './routes/student.routes.js'
 import errorHandler from './middlewares/errorHandler.js'
 import allocationRoutes from './routes/allocation.routes.js'
+import complaintRoutes from './routes/complaint.routes.js'
 
 const app = express()
 app.use(express.json())
 
 app.use('/api/auth', userRoutes)
-app.use('/student', studentRoutes)
+app.use('/complaints', complaintRoutes)
+// app.use('/student', studentRoutes)
 app.use('/admin', allocationRoutes)
 
 // simple root route /

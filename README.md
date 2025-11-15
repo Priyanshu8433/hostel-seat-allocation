@@ -25,7 +25,7 @@ Frontend
 
 React.js – UI development
 
-Tailwind CSS / CSS – Styling (optional as per your project)
+Tailwind CSS / CSS 
 
 Backend
 

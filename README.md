@@ -76,7 +76,7 @@ Base server mount points (from `server/src/index.js`):
 
   - Body:
     ```json
-    { "student_id": "student@example.com" | 123 | "username", "hostel_id": 1, "message": "..." }
+    { "student_id": "username", "hostel_id": 1, "message": "..." }
     ```
   - Response: 201 created with `application` object.
 

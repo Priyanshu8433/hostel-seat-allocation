@@ -1,6 +1,6 @@
 # Hostel Room Allocation System
 
-This repository contains a Next.js frontend (`/client`) and an Express backend (`/server`) for a hostel room allocation system. The backend exposes REST endpoints for user authentication, student applications, and admin allocations; the frontend includes the admin and student dashboard.
+This repository contains a Next.js frontend (`/client`) and an Express backend (`/server`) for a hostel room allocation system. The backend exposes REST endpoints for user authentication, student applications, and admin allocations, complaints and stats; the frontend includes the admin and student dashboard.
 
 ## Contents
 

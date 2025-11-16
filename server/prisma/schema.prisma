@@ -1,0 +1,44 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(STUDENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student   Student? // one-to-one (only if role == STUDENT)
+}
+
+model Student {
+  id          Int        @id @default(autoincrement())
+  userId      Int        @unique
+  rollNumber  String     @unique
+  department  String
+  year        Int
+  phone       String?
+
+  user        User       @relation(fields: [userId], references: [id])
+  hostelAlloc Allocation?
+  fees        Fee[]
+}
+
+
+model Hostel {
+  id       Int     @id @default(autoincrement())
+  name     String  @unique
+  location String
+  rooms    Room[]
+}
+
+
+

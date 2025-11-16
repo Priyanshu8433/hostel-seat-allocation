@@ -84,7 +84,7 @@ const getHostelStats = asyncHandler(async (req, res) => {
 
     const conn = await connectToDatabse()
 
-    // resolve table names in case the DB uses pluralized names
+    // resolve table names 
     const hostelTable = (await resolveTable(conn, ['hostel', 'hostels'])) || 'hostel'
     const roomTable = (await resolveTable(conn, ['room', 'rooms'])) || 'room'
     const allocationsTable = (await resolveTable(conn, ['allocations', 'allocation'])) || 'allocations'

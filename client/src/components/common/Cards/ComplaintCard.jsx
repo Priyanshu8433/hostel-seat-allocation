@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./card";
 import { Button } from "../Buttons/button";
 import {
@@ -8,42 +8,72 @@ import {
   CheckCircle2,
   MessageSquare,
 } from "lucide-react";
-import { users } from "@/data/mock_data";
+import { api } from "@/lib/api";
 
-const ComplaintCard = ({ complaint }) => {
-  // Get student data
-  const student = users.find((u) => u.id === complaint.student_id);
+const ComplaintCard = ({ complaint, onStatusUpdate }) => {
+  const [loading, setLoading] = useState(false);
 
-  // Format date
-  const formattedDate = new Date(complaint.created_at).toLocaleDateString(
-    "en-US",
-    {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    }
-  );
+  // Data is now included in the complaint object from backend
+  const studentName = complaint.full_name || complaint.username || "N/A";
 
-  // Status styling
+  // Format date - backend might not return created_at
+  const formattedDate = complaint.created_at
+    ? new Date(complaint.created_at).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+    : "Recent";
+
+  // Status styling - handle both uppercase and lowercase
   const getStatusStyle = (status) => {
-    switch (status) {
+    const statusLower = status?.toLowerCase();
+    switch (statusLower) {
       case "resolved":
         return "text-green-600 bg-green-50 border-green-200";
       case "open":
         return "text-orange-600 bg-orange-50 border-orange-200";
+      case "in_progress":
+        return "text-blue-600 bg-blue-50 border-blue-200";
       default:
         return "text-gray-600 bg-gray-50 border-gray-200";
     }
   };
 
   const getStatusIcon = (status) => {
-    switch (status) {
+    const statusLower = status?.toLowerCase();
+    switch (statusLower) {
       case "resolved":
         return <CheckCircle2 className="h-4 w-4" />;
       case "open":
         return <AlertCircle className="h-4 w-4" />;
+      case "in_progress":
+        return <AlertCircle className="h-4 w-4" />;
       default:
         return null;
+    }
+  };
+
+  // Format status for display
+  const statusDisplay = complaint.status
+    ?.toLowerCase()
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+
+  const handleResolve = async () => {
+    setLoading(true);
+    try {
+      await api.updateComplaintStatus(complaint.id, "RESOLVED");
+      // Call parent callback to refresh data
+      if (onStatusUpdate) {
+        onStatusUpdate();
+      }
+    } catch (error) {
+      console.error("Failed to resolve complaint:", error);
+      alert("Failed to resolve complaint. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -61,7 +91,7 @@ const ComplaintCard = ({ complaint }) => {
             )}`}
           >
             {getStatusIcon(complaint.status)}
-            {complaint.status}
+            {statusDisplay}
           </span>
         </div>
       </CardHeader>
@@ -77,7 +107,7 @@ const ComplaintCard = ({ complaint }) => {
               <span className="text-xs text-muted-foreground">
                 Submitted by
               </span>
-              <span className="font-medium">{student?.full_name || "N/A"}</span>
+              <span className="font-medium">{studentName}</span>
             </div>
           </div>
           <div className="flex items-center gap-2 text-sm">
@@ -89,11 +119,16 @@ const ComplaintCard = ({ complaint }) => {
           </div>
         </div>
 
-        {complaint.status === "open" && (
+        {complaint.status?.toLowerCase() === "open" && (
           <div className="pt-2">
-            <Button size="sm" className="w-full">
+            <Button
+              size="sm"
+              className="w-full"
+              onClick={handleResolve}
+              disabled={loading}
+            >
               <CheckCircle2 className="h-4 w-4 mr-1" />
-              Mark as Resolved
+              {loading ? "Processing..." : "Mark as Resolved"}
             </Button>
           </div>
         )}

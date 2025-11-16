@@ -16,7 +16,7 @@ export default function OccupancyBar({ occupied, total }) {
               {unoccupied}
             </p>
           )} */}
-          <div className="h-2 min-w-2 w-full rounded-full bg-primary" />
+          <div className="h-2 w-full rounded-full bg-primary" />
         </div>
         {/* Unoccupied */}
         <div className="flex flex-col" style={{ width: `${occupiedPercent}%` }}>
@@ -25,7 +25,7 @@ export default function OccupancyBar({ occupied, total }) {
               {occupied}
             </p>
           )} */}
-          <div className="h-2 min-w-2 w-full rounded-full bg-destructive/70" />
+          <div className="h-2 w-full rounded-full bg-destructive/70" />
         </div>
       </div>
     </div>

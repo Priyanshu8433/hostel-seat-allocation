@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/common/Buttons/button";
 import { Separator } from "@/components/common/Separator/separator";
 import { Plus, Search } from "lucide-react";
-import { rooms, hostels } from "@/data/mock_data";
 import RoomCard from "@/components/common/Cards/RoomCard";
 import { Input } from "@/components/common/InputBox/input";
 import {
@@ -14,20 +13,47 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/common/Select/select";
+import { api } from "@/lib/api";
 
 const Page = () => {
+  const [rooms, setRooms] = useState([]);
+  const [hostels, setHostels] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [hostelFilter, setHostelFilter] = useState("all");
   const [capacityFilter, setCapacityFilter] = useState("all");
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [roomsData, hostelsData] = await Promise.all([
+          api.getRooms(),
+          api.getHostels(),
+        ]);
+        console.log("Rooms from backend:", roomsData);
+        console.log("Hostels from backend:", hostelsData);
+
+        setRooms(roomsData?.data?.rooms || roomsData?.rooms || []);
+        setHostels(hostelsData?.data?.hostels || hostelsData?.hostels || []);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   // Filter rooms
   const filteredRooms = rooms.filter((room) => {
-    const hostel = hostels.find((h) => h.id === room.hostel_id);
-
-    // Search filter
+    // Search filter - includes room number, ID, and tenant names
     const matchesSearch =
-      room.room_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      room.id.toString().includes(searchQuery);
+      room.room_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      room.id.toString().includes(searchQuery) ||
+      room.tenants?.some((tenant) =>
+        tenant.toLowerCase().includes(searchQuery.toLowerCase())
+      );
 
     // Hostel filter
     const matchesHostel =
@@ -39,6 +65,14 @@ const Page = () => {
 
     return matchesSearch && matchesHostel && matchesCapacity;
   });
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -64,7 +98,7 @@ const Page = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search by room number or ID..."
+              placeholder="Search by room number, ID, or tenant name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -135,7 +169,9 @@ const Page = () => {
             ))
           ) : (
             <div className="text-center py-12 text-muted-foreground">
-              No rooms found matching your filters.
+              {rooms.length === 0
+                ? "No rooms available"
+                : "No rooms found matching your filters."}
             </div>
           )}
         </div>

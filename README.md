@@ -204,7 +204,7 @@ Base server mount points (from `server/src/index.js`):
     password VARCHAR(255) NOT NULL,
     full_name VARCHAR(255) NOT NULL,
     role ENUM('STUDENT','ADMIN') NOT NULL DEFAULT 'STUDENT',
-    graduation_year INT NULL,
+    graduation_year INT NULL
   );
   ```
 
@@ -221,7 +221,7 @@ Base server mount points (from `server/src/index.js`):
 - Example `rooms` table:
 
   ```sql
-  CREATE TABLE room (
+  CREATE TABLE rooms (
     id INT AUTO_INCREMENT PRIMARY KEY,
     hostel_id INT NOT NULL,
     room_number VARCHAR(64) NOT NULL,

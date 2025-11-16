@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ComplaintCard from "@/components/common/Cards/ComplaintCard";
 import { Separator } from "@/components/common/Separator/separator";
-import { complaints, users } from "@/data/mock_data";
 import { Input } from "@/components/common/InputBox/input";
 import { Button } from "@/components/common/Buttons/button";
 import { Search } from "lucide-react";
@@ -14,28 +13,60 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/common/Select/select";
+import { api } from "@/lib/api";
 
 const Page = () => {
+  const [complaints, setComplaints] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const complaintsData = await api.getAllComplaints();
+      console.log("Complaints from backend:", complaintsData);
+      setComplaints(
+        complaintsData?.data?.complaints || complaintsData?.complaints || []
+      );
+    } catch (error) {
+      console.error("Error fetching complaints:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Filter complaints
   const filteredComplaints = complaints.filter((complaint) => {
-    const student = users.find((u) => u.id === complaint.student_id);
-
-    // Search filter
+    // Search filter - backend includes student info directly
     const matchesSearch =
-      student?.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student?.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      complaint.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      complaint.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      complaint.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      complaint.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      complaint.description
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
       complaint.id.toString().includes(searchQuery);
 
-    // Status filter
+    // Status filter - handle uppercase from backend
+    const complaintStatus = complaint.status?.toLowerCase();
     const matchesStatus =
-      statusFilter === "all" || complaint.status === statusFilter;
+      statusFilter === "all" || complaintStatus === statusFilter;
 
     return matchesSearch && matchesStatus;
   });
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -75,6 +106,7 @@ const Page = () => {
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="open">Open</SelectItem>
               <SelectItem value="resolved">Resolved</SelectItem>
+              <SelectItem value="in_progress">In Progress</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -100,7 +132,11 @@ const Page = () => {
       <div className="grid grid-cols-2 gap-4">
         {filteredComplaints.length > 0 ? (
           filteredComplaints.map((complaint) => (
-            <ComplaintCard key={complaint.id} complaint={complaint} />
+            <ComplaintCard
+              key={complaint.id}
+              complaint={complaint}
+              onStatusUpdate={fetchData}
+            />
           ))
         ) : (
           <div className="col-span-2 text-center py-12 text-muted-foreground">

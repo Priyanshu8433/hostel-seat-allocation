@@ -1,10 +1,40 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { Button } from "@/components/common/Buttons/button";
 import { Separator } from "@/components/common/Separator/separator";
 import { Plus } from "lucide-react";
-import { hostels } from "@/data/mock_data";
 import HostelCard from "@/components/common/Cards/HostelCard";
+import { api } from "@/lib/api";
 
-const page = () => {
+const Page = () => {
+  const [hostels, setHostels] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchHostels = async () => {
+      try {
+        const data = await api.getHostels();
+        console.log("Hostels from backend:", data);
+        setHostels(data?.data?.hostels || data?.hostels || []);
+      } catch (error) {
+        console.error("Error fetching hostels:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHostels();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <div>
       {/* Header */}
@@ -36,13 +66,19 @@ const page = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        {hostels.map((hostel) => (
-          <HostelCard key={hostel.id} hostel={hostel} />
-        ))}
-      </div>
+      {hostels.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground">
+          No hostels found
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 gap-4">
+          {hostels.map((hostel) => (
+            <HostelCard key={hostel.id} hostel={hostel} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
 
-export default page;
+export default Page;

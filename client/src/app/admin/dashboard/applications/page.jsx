@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { applications, hostels, users } from "@/data/mock_data";
+import { useState, useEffect } from "react";
 import ApplicationCard from "@/components/common/Cards/ApplicationCard";
 import { Separator } from "@/components/common/Separator/separator";
 import { Input } from "@/components/common/InputBox/input";
@@ -14,34 +13,71 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/common/Select/select";
+import { api } from "@/lib/api";
 
 const Page = () => {
+  const [applications, setApplications] = useState([]);
+  const [hostels, setHostels] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [hostelFilter, setHostelFilter] = useState("all");
 
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [appsData, hostelsData] = await Promise.all([
+        api.getAllApplications(),
+        api.getHostels(),
+      ]);
+      console.log("Applications from backend:", appsData);
+      console.log("Hostels from backend:", hostelsData);
+
+      setApplications(
+        appsData?.data?.applications || appsData?.applications || []
+      );
+      setHostels(hostelsData?.data?.hostels || hostelsData?.hostels || []);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Filter applications
   const filteredApplications = applications.filter((application) => {
-    const student = users.find((u) => u.id === application.student_id);
-    const hostel = hostels.find((h) => h.id === application.hostel_id);
-
-    // Search filter
+    // Search filter - data now includes student info directly
     const matchesSearch =
-      student?.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student?.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      application.full_name
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      application.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      application.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       application.id.toString().includes(searchQuery);
 
-    // Status filter
-    const matchesStatus =
-      statusFilter === "all" || application.status === statusFilter;
+    // Status filter - handle both uppercase and lowercase
+    const appStatus = application.status?.toLowerCase();
+    const matchesStatus = statusFilter === "all" || appStatus === statusFilter;
 
     // Hostel filter
     const matchesHostel =
       hostelFilter === "all" ||
-      application.hostel_id.toString() === hostelFilter;
+      application.hostel_id?.toString() === hostelFilter;
 
     return matchesSearch && matchesStatus && matchesHostel;
   });
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -82,6 +118,7 @@ const Page = () => {
               <SelectItem value="pending">Pending</SelectItem>
               <SelectItem value="approved">Approved</SelectItem>
               <SelectItem value="rejected">Rejected</SelectItem>
+              <SelectItem value="in_progress">In Progress</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -123,7 +160,11 @@ const Page = () => {
       <div className="grid grid-cols-3 gap-4">
         {filteredApplications.length > 0 ? (
           filteredApplications.map((application) => (
-            <ApplicationCard key={application.id} application={application} />
+            <ApplicationCard
+              key={application.id}
+              application={application}
+              onStatusUpdate={fetchData}
+            />
           ))
         ) : (
           <div className="col-span-3 text-center py-12 text-muted-foreground">

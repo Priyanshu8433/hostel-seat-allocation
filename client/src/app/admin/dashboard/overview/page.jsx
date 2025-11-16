@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -13,18 +16,79 @@ import {
   BedSingle,
   ChevronsRight,
 } from "lucide-react";
-import {
-  applications,
-  complaints,
-  users,
-  hostels,
-  statistics,
-} from "@/data/mock_data";
 import { Separator } from "@/components/common/Separator/separator";
 import AppStatus from "@/components/common/Labels/AppStatus";
 import Link from "next/link";
+import { api } from "@/lib/api";
 
-const page = () => {
+const statusVariants = {
+  IN_PROGRESS: "pending",
+  pending: "pending",
+};
+
+const Page = () => {
+  const [statistics, setStatistics] = useState({
+    total_students: 0,
+    open_complaints: 0,
+    pending_applications: 0,
+    total_beds: 0,
+    allocated_beds: 0,
+    available_beds: 0,
+  });
+  const [applications, setApplications] = useState([]);
+  const [complaints, setComplaints] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [hostels, setHostels] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch all data in parallel
+        const [stats, appsData, complaintsData, usersData, hostelsData] =
+          await Promise.all([
+            api.getAdminStats(),
+            api.getAllApplications(),
+            api.getAllComplaints(),
+            api.getUsers(),
+            api.getHostels(),
+          ]);
+
+        console.log("Stats from backend:", stats);
+        console.log("Applications:", appsData);
+        console.log("Complaints:", complaintsData);
+        console.log("Users:", usersData);
+        console.log("Hostels:", hostelsData);
+
+        // Stats is already extracted by the API utility
+        setStatistics(stats);
+        // Extract arrays from the data object
+        setApplications(
+          appsData?.data?.applications || appsData?.applications || []
+        );
+        setComplaints(
+          complaintsData?.data?.complaints || complaintsData?.complaints || []
+        );
+        setUsers(usersData?.data?.users || usersData?.users || []);
+        setHostels(hostelsData?.data?.hostels || hostelsData?.hostels || []);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <div>
       {/* Header */}
@@ -64,7 +128,10 @@ const page = () => {
             title="Available Seats"
             description="Number of available seats"
             icon={BedSingle}
-            value={statistics.total_beds - statistics.allocated_beds}
+            value={
+              statistics.available_beds ||
+              statistics.total_beds - statistics.allocated_beds
+            }
           />
         </div>
         <div className="flex-1">Charts come here</div>
@@ -91,6 +158,13 @@ const page = () => {
               {applications.slice(0, 5).map((app) => {
                 const student = users.find((u) => u.id === app.student_id);
                 const hostel = hostels.find((h) => h.id === app.hostel_id);
+                const statusLower = app.status?.toLowerCase();
+                // Convert to title case: "IN_PROGRESS" -> "In Progress"
+                const statusDisplay = app.status
+                  ?.toLowerCase()
+                  .split("_")
+                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(" ");
                 return (
                   <div
                     key={app.id}
@@ -102,10 +176,15 @@ const page = () => {
                       {student ? student.full_name : "Unknown Student"}
                     </span>
                     <span>{hostel ? hostel.name : "Unknown Hostel"}</span>
-                    <AppStatus text={app.status} variant={app.status} />
+                    <AppStatus text={statusDisplay} variant={statusLower} />
                   </div>
                 );
               })}
+              {applications.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  No applications found
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end">
@@ -136,10 +215,15 @@ const page = () => {
               </div>
               {complaints.slice(0, 5).map((comp) => {
                 const student = users.find((u) => u.id === comp.student_id);
-                const statusVariant = {
-                  open: "pending",
-                  resolved: "approved",
-                };
+                const statusLower = comp.status?.toLowerCase();
+                const statusVariant =
+                  statusLower === "open" ||
+                  statusLower === "pending" ||
+                  statusLower === "in_progress"
+                    ? "pending"
+                    : statusLower === "resolved"
+                    ? "approved"
+                    : statusLower;
                 return (
                   <div
                     key={comp.id}
@@ -149,16 +233,18 @@ const page = () => {
                     <span>
                       {student ? student.full_name : "Unknown Student"}
                     </span>
-                    <AppStatus
-                      text={comp.status}
-                      variant={statusVariant[comp.status]}
-                    />
+                    <AppStatus text={statusVariant} variant={statusVariant} />
                     <span className="truncate block w-full text-left">
                       {comp.description}
                     </span>
                   </div>
                 );
               })}
+              {complaints.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  No complaints found
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end">
@@ -176,4 +262,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;

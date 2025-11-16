@@ -254,3 +254,15 @@ Base server mount points (from `server/src/index.js`):
   	allocated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
   ```
+  Example `complaints` table:
+  ```sql
+  CREATE TABLE complaints (
+      id INT NOT NULL AUTO_INCREMENT,
+      student_id INT NOT NULL,
+      description TEXT NOT NULL,
+      status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (id)
+  );
+  ```

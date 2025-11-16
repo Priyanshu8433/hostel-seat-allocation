@@ -42,7 +42,9 @@ const changeComplaintStatus = asyncHandler(async (req, res) => {
     if (!id) throw new ApiError(400, 'complaint id required')
     if (!status) throw new ApiError(400, 'status is required')
 
+    console.log('changeComplaintStatus: requested id =>', id)
     const existing = await findComplaintById(id)
+    console.log('changeComplaintStatus: db lookup result =>', existing)
     if (!existing) throw new ApiError(404, 'Complaint not found')
 
     const updated = await updateComplaintStatus(id, status)

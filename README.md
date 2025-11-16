@@ -95,8 +95,75 @@ Base server mount points (from `server/src/index.js`):
   - Response: 201 with `allocation` object.
 
 - `GET /admin/allocations/:student_id` – list allocations for a student
+
   - Example: `GET /admin/allocations/123`
   - Response: 200 with `{ allocations: [...] }`.
+
+- `POST /complaints` – submit a complaint
+
+  - Body (application/json):
+    ```json
+    { "student_id": 5, "description": "Light not working" }
+    ```
+  - Response: 201 created with `{ complaint }`.
+
+- `GET /complaints/:student_id` – list complaints for a student
+
+  - Example: `GET /complaints/5`
+  - Response: 200 with `{ complaints: [...] }`.
+
+- `PATCH /complaints/:id/status` – update complaint status
+
+  - Example: `PATCH /complaints/13/status` with body `{ "status": "RESOLVED" }`
+  - Response: 200 with the updated `{ complaint }`.
+
+- `GET /admin/stats` and `GET /stats` – aggregated system statistics
+
+  - Example: `GET /admin/stats` or `GET /stats`
+  - Response (200):
+    ```json
+    {
+      "statusCode": 200,
+      "data": {
+        "stats": {
+          "total_students": 120,
+          "open_complaints": 3,
+          "pending_applications": 5,
+          "total_beds": 200,
+          "allocated_beds": 180,
+          "available_beds": 20
+        }
+      },
+      "message": "OK",
+      "success": true
+    }
+    ```
+
+- `GET /admin/stats/room/:room_id/students` and `GET /stats/room/:room_id/students` – list students allocated to a room
+
+  - Example: `GET /admin/stats/room/3/students`
+  - Response (200):
+    ```json
+    {
+      "statusCode": 200,
+      "data": {
+        "students": [
+          {
+            "student_id": 12,
+            "username": "alice",
+            "email": "alice@example.com",
+            "full_name": "Alice A.",
+            "graduation_year": 2026,
+            "allocation_id": 55,
+            "room_id": 3,
+            "allocated_at": "2025-11-01T12:00:00.000Z"
+          }
+        ]
+      },
+      "message": "OK",
+      "success": true
+    }
+    ```
 
 ## Notes: database tables
 
@@ -111,12 +178,10 @@ Base server mount points (from `server/src/index.js`):
     full_name VARCHAR(255) NOT NULL,
     role ENUM('STUDENT','ADMIN') NOT NULL DEFAULT 'STUDENT',
     graduation_year INT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
   );
   ```
 
-- Example `hostel` table:
+- Example `hostels` table:
 
   ```sql
   CREATE TABLE hostel (
@@ -125,7 +190,7 @@ Base server mount points (from `server/src/index.js`):
   );
   ```
 
-- Example `room` table:
+- Example `rooms` table:
 
   ```sql
   CREATE TABLE room (

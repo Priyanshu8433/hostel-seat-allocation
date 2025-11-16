@@ -10,14 +10,22 @@ import {
 import { Input } from "@/components/common/InputBox/input";
 import { Label } from "@/components/common/Labels/label";
 import Link from "next/link";
+import Image from "next/image";
 
 const page = () => {
   return (
     <div className="h-screen flex justify-center items-center">
+      {/* <Image
+        src="/assets/vector/building_1.svg"
+        alt="Logo"
+        width={800}
+        height={800}
+        className="absolute left-46 bottom-4 opacity-20"
+      /> */}
       <Card className="w-96 flex flex-col gap-8 z-9999">
         <CardHeader>
           <CardTitle className="text-4xl font-black text-center">
-            Admin Login
+            Student Login
           </CardTitle>
           <CardDescription className="text-center">
             Please enter your credentials to login.
@@ -36,14 +44,14 @@ const page = () => {
             </Link>
           </div>
           <Button asChild>
-            <Link href="/admin/dashboard">Login</Link>
+            <Link href="/student/dashboard">Login</Link>
           </Button>
         </CardContent>
         <CardFooter className="flex justify-between -mt-4">
           <p className="mx-auto">
             Don&apos;t have an account?{" "}
             <Link
-              href="/admin/auth/signup"
+              href="/student/auth/signup"
               className="text-primary hover:underline"
             >
               Sign up

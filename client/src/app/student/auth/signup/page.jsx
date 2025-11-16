@@ -17,10 +17,10 @@ const page = () => {
       <Card className="w-96 flex flex-col gap-8 z-9999">
         <CardHeader>
           <CardTitle className="text-4xl font-black text-center">
-            Admin Login
+            Student Signup
           </CardTitle>
           <CardDescription className="text-center">
-            Please enter your credentials to login.
+            Please enter your credentials to signup.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-6">
@@ -31,22 +31,21 @@ const page = () => {
           <div className="flex flex-col gap-2">
             <Label htmlFor="password">Password</Label>
             <Input type="password" placeholder="Password" />
-            <Link href="#" className="text-primary hover:underline">
-              Forgot password?
-            </Link>
           </div>
-          <Button asChild>
-            <Link href="/admin/dashboard">Login</Link>
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="confirm-password">Confirm Password</Label>
+            <Input type="password" placeholder="Confirm Password" />
+          </div>
+          <Button>Signup</Button>
         </CardContent>
         <CardFooter className="flex justify-between -mt-4">
           <p className="mx-auto">
-            Don&apos;t have an account?{" "}
+            Already have an account?{" "}
             <Link
-              href="/admin/auth/signup"
+              href="/student/auth/login"
               className="text-primary hover:underline"
             >
-              Sign up
+              Login
             </Link>
           </p>
         </CardFooter>

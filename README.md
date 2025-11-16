@@ -143,6 +143,7 @@ Base server mount points (from `server/src/index.js`):
 
   - Example: `GET /admin/stats/room/3/students`
   - Response (200):
+
     ```json
     {
       "statusCode": 200,
@@ -165,6 +166,32 @@ Base server mount points (from `server/src/index.js`):
     }
     ```
 
+    - `GET /admin/stats/hostel/:hostel_id` and `GET /stats/hostel/:hostel_id` – per-hostel aggregated statistics (beds, allocations, students, complaints, optional warden)
+
+      - Example: `GET /admin/stats/hostel/2`
+      - Response (200):
+        ```json
+        {
+          "statusCode": 200,
+          "data": {
+            "stats": {
+              "hostel": {
+                "id": 2,
+                "name": "Hostel B",
+                "warden_name": "Dummy Warden"
+              },
+              "total_beds": 50,
+              "allocated_beds": 45,
+              "available_beds": 5,
+              "total_students": 45,
+              "open_complaints": 2
+            }
+          },
+          "message": "OK",
+          "success": true
+        }
+        ```
+
 ## Notes: database tables
 
 - Example `users` table:
@@ -186,7 +213,8 @@ Base server mount points (from `server/src/index.js`):
   ```sql
   CREATE TABLE hostel (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE
+    name VARCHAR(255) NOT NULL UNIQUE,
+    warden_name VARCHAR(255) NULL
   );
   ```
 

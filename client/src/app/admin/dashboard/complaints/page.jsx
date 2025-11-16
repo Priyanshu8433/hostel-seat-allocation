@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { applications, hostels, users } from "@/data/mock_data";
-import ApplicationCard from "@/components/common/Cards/ApplicationCard";
+import ComplaintCard from "@/components/common/Cards/ComplaintCard";
 import { Separator } from "@/components/common/Separator/separator";
+import { complaints, users } from "@/data/mock_data";
 import { Input } from "@/components/common/InputBox/input";
 import { Button } from "@/components/common/Buttons/button";
-import { Search, Filter } from "lucide-react";
+import { Search } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -18,29 +18,23 @@ import {
 const Page = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [hostelFilter, setHostelFilter] = useState("all");
 
-  // Filter applications
-  const filteredApplications = applications.filter((application) => {
-    const student = users.find((u) => u.id === application.student_id);
-    const hostel = hostels.find((h) => h.id === application.hostel_id);
+  // Filter complaints
+  const filteredComplaints = complaints.filter((complaint) => {
+    const student = users.find((u) => u.id === complaint.student_id);
 
     // Search filter
     const matchesSearch =
       student?.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student?.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      application.id.toString().includes(searchQuery);
+      complaint.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      complaint.id.toString().includes(searchQuery);
 
     // Status filter
     const matchesStatus =
-      statusFilter === "all" || application.status === statusFilter;
+      statusFilter === "all" || complaint.status === statusFilter;
 
-    // Hostel filter
-    const matchesHostel =
-      hostelFilter === "all" ||
-      application.hostel_id.toString() === hostelFilter;
-
-    return matchesSearch && matchesStatus && matchesHostel;
+    return matchesSearch && matchesStatus;
   });
 
   return (
@@ -48,23 +42,23 @@ const Page = () => {
       {/* Header */}
       <div className="flex flex-col mb-3">
         <span className="text-3xl font-extrabold text-foreground">
-          Applications
+          Complaints
         </span>
         <span className="font-medium text-muted-foreground text-lg">
-          Manage Application status
+          Manage complaint information and status
         </span>
       </div>
 
       <Separator className="mb-5" />
 
       {/* Search and Filters */}
-      <div className="mb-6 grid grid-cols-[2fr_1fr_1fr_1fr] gap-4 max-w-6xl">
+      <div className="mb-6 grid grid-cols-[2fr_1fr_1fr] gap-4 max-w-6xl">
         <div className="flex gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search by student name, email, or application ID..."
+              placeholder="Search by student name, description, or complaint ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -79,26 +73,11 @@ const Page = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
+              <SelectItem value="open">Open</SelectItem>
+              <SelectItem value="resolved">Resolved</SelectItem>
             </SelectContent>
           </Select>
         </div>
-
-        <Select value={hostelFilter} onValueChange={setHostelFilter}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Hostel" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Hostels</SelectItem>
-            {hostels.map((hostel) => (
-              <SelectItem key={hostel.id} value={hostel.id.toString()}>
-                {hostel.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
 
         <Button
           variant="outline"
@@ -106,7 +85,6 @@ const Page = () => {
           onClick={() => {
             setSearchQuery("");
             setStatusFilter("all");
-            setHostelFilter("all");
           }}
           className="h-9"
         >
@@ -114,20 +92,19 @@ const Page = () => {
         </Button>
 
         <div className="text-sm text-muted-foreground">
-          Showing {filteredApplications.length} of {applications.length}{" "}
-          applications
+          Showing {filteredComplaints.length} of {complaints.length} complaints
         </div>
       </div>
 
       {/* Content */}
-      <div className="grid grid-cols-3 gap-4">
-        {filteredApplications.length > 0 ? (
-          filteredApplications.map((application) => (
-            <ApplicationCard key={application.id} application={application} />
+      <div className="grid grid-cols-2 gap-4">
+        {filteredComplaints.length > 0 ? (
+          filteredComplaints.map((complaint) => (
+            <ComplaintCard key={complaint.id} complaint={complaint} />
           ))
         ) : (
-          <div className="col-span-3 text-center py-12 text-muted-foreground">
-            No applications found matching your filters.
+          <div className="col-span-2 text-center py-12 text-muted-foreground">
+            No complaints found matching your filters.
           </div>
         )}
       </div>

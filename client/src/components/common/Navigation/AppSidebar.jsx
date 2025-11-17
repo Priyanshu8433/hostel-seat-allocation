@@ -22,15 +22,15 @@ const menuItems = {
   student: [
     { title: "Overview", url: "/student/dashboard/overview", icon: Home },
     {
-      title: "Apply for hostel",
+      title: "Hostel Application",
       url: "/student/dashboard/apply",
       icon: Search,
     },
-    {
-      title: "Application Status",
-      url: "/student/dashboard/applications",
-      icon: Inbox,
-    },
+    // {
+    //   title: "Application Status",
+    //   url: "/student/dashboard/applications",
+    //   icon: Inbox,
+    // },
     {
       title: "Complaints",
       url: "/student/dashboard/complaints",

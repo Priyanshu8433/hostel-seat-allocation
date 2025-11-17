@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/common/Buttons/button";
 import {
   Card,
@@ -11,8 +13,35 @@ import { Input } from "@/components/common/InputBox/input";
 import { Label } from "@/components/common/Labels/label";
 import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
 
-const page = () => {
+const Page = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const res = await api.login({ email, password });
+      if (res?.token) {
+        router.push("/student/dashboard/overview");
+      } else {
+        setError("Invalid credentials. Please try again.");
+      }
+    } catch (err) {
+      setError(err?.message || "Login failed. Try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="h-screen flex justify-center items-center">
       {/* <Image
@@ -32,20 +61,35 @@ const page = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-6">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input type="email" placeholder="Email" className="" />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="password">Password</Label>
-            <Input type="password" placeholder="Password" />
-            <Link href="#" className="text-primary hover:underline">
-              Forgot password?
-            </Link>
-          </div>
-          <Button asChild>
-            <Link href="/student/dashboard">Login</Link>
-          </Button>
+          <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <Link href="#" className="text-primary hover:underline">
+                Forgot password?
+              </Link>
+            </div>
+            {error && <div className="text-red-600 text-sm">{error}</div>}
+            <Button type="submit" disabled={loading}>
+              {loading ? "Logging in..." : "Login"}
+            </Button>
+          </form>
         </CardContent>
         <CardFooter className="flex justify-between -mt-4">
           <p className="mx-auto">
@@ -63,4 +107,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;

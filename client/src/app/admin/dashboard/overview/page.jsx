@@ -104,37 +104,34 @@ const Page = () => {
       <Separator className="mb-5" />
 
       {/* Stat Cards */}
-      <div className="flex gap-4 mb-6">
-        <div className="flex-1 grid grid-cols-2 gap-4">
-          <StatCard
-            title="Total Students"
-            description="Number of students enrolled"
-            icon={Users}
-            value={statistics.total_students}
-          />
-          <StatCard
-            title="Pending Applications"
-            description="Number of applications pending review"
-            icon={StickyNote}
-            value={statistics.pending_applications}
-          />
-          <StatCard
-            title="Open Complaints"
-            description="Number of open complaints"
-            icon={BadgeAlert}
-            value={statistics.open_complaints}
-          />
-          <StatCard
-            title="Available Seats"
-            description="Number of available seats"
-            icon={BedSingle}
-            value={
-              statistics.available_beds ||
-              statistics.total_beds - statistics.allocated_beds
-            }
-          />
-        </div>
-        <div className="flex-1">Charts come here</div>
+      <div className="flex-1 grid grid-cols-4 gap-4 mb-6">
+        <StatCard
+          title="Total Students"
+          description="Number of students enrolled"
+          icon={Users}
+          value={statistics.total_students}
+        />
+        <StatCard
+          title="Pending Applications"
+          description="Number of applications pending review"
+          icon={StickyNote}
+          value={statistics.pending_applications}
+        />
+        <StatCard
+          title="Open Complaints"
+          description="Number of open complaints"
+          icon={BadgeAlert}
+          value={statistics.open_complaints}
+        />
+        <StatCard
+          title="Available Seats"
+          description="Number of available seats"
+          icon={BedSingle}
+          value={
+            statistics.available_beds ||
+            statistics.total_beds - statistics.allocated_beds
+          }
+        />
       </div>
 
       {/* Content */}

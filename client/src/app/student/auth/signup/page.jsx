@@ -59,7 +59,7 @@ const Page = () => {
       });
       if (res?.success || res?.status === 201) {
         setSuccess("Signup successful! Redirecting to login...");
-        setTimeout(() => router.push("/student/auth/login"), 1500);
+        setTimeout(() => router.push("/student/dashboard/overview"), 1500);
       } else {
         setError(res?.message || "Signup failed. Try again.");
       }

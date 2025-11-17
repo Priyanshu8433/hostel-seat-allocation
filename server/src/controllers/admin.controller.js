@@ -8,132 +8,147 @@ import { updateComplaintStatus } from "../models/complaint.model.js";
 // Get all applications with student and hostel details
 const getAllApplications = asyncHandler(async (req, res) => {
   const conn = await connectToDatabse();
-
-  const [rows] = await conn.execute(
-    `SELECT 
-      a.id,
-      a.student_id,
-      a.hostel_id,
-      a.status,
-      a.message,
-      u.username,
-      u.email,
-      u.full_name,
-      h.name AS hostel_name
-    FROM applications a
-    LEFT JOIN users u ON a.student_id = u.id
-    LEFT JOIN hostel h ON a.hostel_id = h.id
-    ORDER BY a.id DESC`
-  );
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, { applications: rows }, "OK"));
+  try {
+    const [rows] = await conn.execute(
+      `SELECT 
+        a.id,
+        a.student_id,
+        a.hostel_id,
+        a.status,
+        a.message,
+        u.username,
+        u.email,
+        u.full_name,
+        h.name AS hostel_name
+      FROM applications a
+      LEFT JOIN users u ON a.student_id = u.id
+      LEFT JOIN hostel h ON a.hostel_id = h.id
+      ORDER BY a.id DESC`
+    );
+    return res
+      .status(200)
+      .json(new ApiResponse(200, { applications: rows }, "OK"));
+  } finally {
+    conn.release();
+  }
 });
 
 // Get all complaints with student details
 const getAllComplaints = asyncHandler(async (req, res) => {
   const conn = await connectToDatabse();
-
-  const [rows] = await conn.execute(
-    `SELECT 
-      c.id,
-      c.student_id,
-      c.description,
-      c.status,
-      u.username,
-      u.email,
-      u.full_name
-    FROM complaints c
-    LEFT JOIN users u ON c.student_id = u.id
-    ORDER BY c.id DESC`
-  );
-
-  return res.status(200).json(new ApiResponse(200, { complaints: rows }, "OK"));
+  try {
+    const [rows] = await conn.execute(
+      `SELECT 
+        c.id,
+        c.student_id,
+        c.description,
+        c.status,
+        u.username,
+        u.email,
+        u.full_name
+      FROM complaints c
+      LEFT JOIN users u ON c.student_id = u.id
+      ORDER BY c.id DESC`
+    );
+    return res
+      .status(200)
+      .json(new ApiResponse(200, { complaints: rows }, "OK"));
+  } finally {
+    conn.release();
+  }
 });
 
 // Get all users (or filter by role)
 const getAllUsers = asyncHandler(async (req, res) => {
   const conn = await connectToDatabse();
-  const { role } = req.query;
+  try {
+    const { role } = req.query;
 
-  let query = `SELECT id, username, email, full_name, role, graduation_year FROM users`;
-  let params = [];
+    let query = `SELECT id, username, email, full_name, role, graduation_year FROM users`;
+    let params = [];
 
-  if (role) {
-    query += ` WHERE role = ?`;
-    params.push(role);
+    if (role) {
+      query += ` WHERE role = ?`;
+      params.push(role);
+    }
+
+    query += ` ORDER BY id DESC`;
+
+    const [rows] = await conn.execute(query, params);
+
+    return res.status(200).json(new ApiResponse(200, { users: rows }, "OK"));
+  } finally {
+    conn.release();
   }
-
-  query += ` ORDER BY id DESC`;
-
-  const [rows] = await conn.execute(query, params);
-
-  return res.status(200).json(new ApiResponse(200, { users: rows }, "OK"));
 });
 
 // Get all hostels with room details
 const getAllHostels = asyncHandler(async (req, res) => {
   const conn = await connectToDatabse();
-
-  const [rows] = await conn.execute(
-    `SELECT 
-      h.id,
-      h.name,
-      h.warden_name,
-      COUNT(DISTINCT r.id) AS total_rooms,
-      COALESCE(SUM(r.capacity), 0) AS total_capacity,
-      COALESCE(COUNT(DISTINCT a.id), 0) AS occupied_beds
-    FROM hostel h
-    LEFT JOIN rooms r ON h.id = r.hostel_id
-    LEFT JOIN allocations a ON r.id = a.room_id
-    GROUP BY h.id, h.name, h.warden_name
-    ORDER BY h.name`
-  );
-
-  return res.status(200).json(new ApiResponse(200, { hostels: rows }, "OK"));
+  try {
+    const [rows] = await conn.execute(
+      `SELECT 
+        h.id,
+        h.name,
+        h.warden_name,
+        COUNT(DISTINCT r.id) AS total_rooms,
+        COALESCE(SUM(r.capacity), 0) AS total_capacity,
+        COALESCE(COUNT(DISTINCT a.id), 0) AS occupied_beds
+      FROM hostel h
+      LEFT JOIN rooms r ON h.id = r.hostel_id
+      LEFT JOIN allocations a ON r.id = a.room_id
+      GROUP BY h.id, h.name, h.warden_name
+      ORDER BY h.name`
+    );
+    return res.status(200).json(new ApiResponse(200, { hostels: rows }, "OK"));
+  } finally {
+    conn.release();
+  }
 });
 
 // Get all rooms with hostel and tenant details
 const getAllRooms = asyncHandler(async (req, res) => {
   const conn = await connectToDatabse();
+  try {
+    const [rooms] = await conn.execute(
+      `SELECT 
+        r.id,
+        r.hostel_id,
+        r.room_number,
+        r.capacity,
+        h.name AS hostel_name,
+        COUNT(DISTINCT a.id) AS occupied_beds
+      FROM rooms r
+      LEFT JOIN hostel h ON r.hostel_id = h.id
+      LEFT JOIN allocations a ON r.id = a.room_id
+      GROUP BY r.id, r.hostel_id, r.room_number, r.capacity, h.name
+      ORDER BY h.name, r.room_number`
+    );
 
-  const [rooms] = await conn.execute(
-    `SELECT 
-      r.id,
-      r.hostel_id,
-      r.room_number,
-      r.capacity,
-      h.name AS hostel_name,
-      COUNT(DISTINCT a.id) AS occupied_beds
-    FROM rooms r
-    LEFT JOIN hostel h ON r.hostel_id = h.id
-    LEFT JOIN allocations a ON r.id = a.room_id
-    GROUP BY r.id, r.hostel_id, r.room_number, r.capacity, h.name
-    ORDER BY h.name, r.room_number`
-  );
+    // Get tenant names for each room
+    const roomsWithTenants = await Promise.all(
+      rooms.map(async (room) => {
+        const [tenants] = await conn.execute(
+          `SELECT u.full_name
+          FROM allocations a
+          JOIN users u ON a.student_id = u.id
+          WHERE a.room_id = ?`,
+          [room.id]
+        );
+        return {
+          ...room,
+          tenants: tenants.map((t) => t.full_name),
+          available_beds: room.capacity - room.occupied_beds,
+        };
+      })
+    );
 
-  // Get tenant names for each room
-  const roomsWithTenants = await Promise.all(
-    rooms.map(async (room) => {
-      const [tenants] = await conn.execute(
-        `SELECT u.full_name
-        FROM allocations a
-        JOIN users u ON a.student_id = u.id
-        WHERE a.room_id = ?`,
-        [room.id]
-      );
-      return {
-        ...room,
-        tenants: tenants.map((t) => t.full_name),
-        available_beds: room.capacity - room.occupied_beds,
-      };
-    })
-  );
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, { rooms: roomsWithTenants }, "OK"));
+    return res
+      .status(200)
+      .json(new ApiResponse(200, { rooms: roomsWithTenants }, "OK"));
+  } finally {
+    conn.release();
+  }
 });
 
 // Update application status (approve/reject)

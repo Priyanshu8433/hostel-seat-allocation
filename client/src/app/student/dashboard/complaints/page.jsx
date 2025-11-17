@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, server } from "react";
 import { Card } from "@/components/common/Cards/card";
 import { Button } from "@/components/common/Buttons/button";
 import { Input } from "@/components/common/InputBox/input";

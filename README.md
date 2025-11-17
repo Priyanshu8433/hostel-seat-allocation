@@ -121,6 +121,7 @@ Base server mount points (from `server/src/index.js`):
 
   - Example: `GET /admin/stats` or `GET /stats`
   - Response (200):
+
     ```json
     {
       "statusCode": 200,
@@ -138,6 +139,33 @@ Base server mount points (from `server/src/index.js`):
       "success": true
     }
     ```
+
+    - Admin CRUD endpoints
+
+    - `GET /admin/complaints` – list all complaints (admin)
+
+      - Example: `GET /admin/complaints`
+      - Response: 200 with `{ complaints: [...] }` where each complaint includes student username/email when available.
+
+    - `GET /admin/users` – list users (admin)
+
+      - Example: `GET /admin/users`
+      - Response: 200 with `{ users: [...] }` (no passwords returned).
+
+    - `GET /admin/applications` – list all applications (admin)
+
+      - Example: `GET /admin/applications`
+      - Response: 200 with `{ applications: [...] }` including student info.
+
+    - `PATCH /admin/users/:id` – update a user (admin)
+
+      - Body (application/json): any of `username`, `email`, `full_name`, `role`, `graduation_year`, `password`.
+      - Response: 200 with `{ user }` (updated user object).
+
+    - `PATCH /admin/applications/:id` – update an application (admin)
+
+      - Body (application/json): any of `status`, `message`, `hostel_id`.
+      - Response: 200 with `{ application }` (updated application object).
 
 - `GET /admin/stats/room/:room_id/students` and `GET /stats/room/:room_id/students` – list students allocated to a room
 
